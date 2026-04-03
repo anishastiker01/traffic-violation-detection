@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+venv/
+
+# Database & violations folder (don't commit real data)
+violations.db
+violations/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arduino build files
+*.bin
+*.elf
+build/

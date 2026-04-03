@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Traffic Violation Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap');
+
+    :root {
+      --bg: #0a0c10;
+      --card: #111318;
+      --border: #1e2330;
+      --red: #ff3b3b;
+      --amber: #ffb800;
+      --green: #00e676;
+      --blue: #2979ff;
+      --text: #e8eaf0;
+      --muted: #5a6070;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Rajdhani', sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      background: #0d0f14;
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--red);
+      text-transform: uppercase;
+    }
+
+    .logo span { color: var(--text); }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      color: var(--green);
+    }
+
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      padding: 28px 32px 0;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .stat-card.red::before   { background: var(--red); }
+    .stat-card.amber::before { background: var(--amber); }
+    .stat-card.blue::before  { background: var(--blue); }
+
+    .stat-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .red   .stat-value { color: var(--red); }
+    .amber .stat-value { color: var(--amber); }
+    .blue  .stat-value { color: var(--blue); }
+
+    .section {
+      padding: 28px 32px;
+    }
+
+    .section-title {
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+    }
+
+    th {
+      background: #13151c;
+      padding: 14px 16px;
+      text-align: left;
+      letter-spacing: 1px;
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    tr:hover td { background: #13151c; }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      background: rgba(255,59,59,0.15);
+      color: var(--red);
+      border: 1px solid rgba(255,59,59,0.3);
+    }
+
+    .thumb {
+      width: 60px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .thumb:hover { transform: scale(1.5); }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 600px;
+      width: 90%;
+    }
+
+    .modal img {
+      width: 100%;
+      border-radius: 8px;
+      margin-bottom: 16px;
+    }
+
+    .modal-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    .modal-meta span { color: var(--text); }
+
+    .modal-close {
+      margin-top: 16px;
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      transition: background 0.2s;
+    }
+
+    .modal-close:hover { background: var(--border); }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 1px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Traffic<span>Guard</span> ◈ Violation Monitor</div>
+  <div class="live-badge"><div class="dot"></div> LIVE MONITORING</div>
+</header>
+
+<div class="stats-grid">
+  <div class="stat-card red">
+    <div class="stat-label">Total Violations</div>
+    <div class="stat-value" id="total">–</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-label">Today</div>
+    <div class="stat-value" id="today">–</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">Locations Active</div>
+    <div class="stat-value" id="locations">–</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Recent Violations</div>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Location</th>
+          <th>Timestamp</th>
+          <th>Received</th>
+          <th>Image</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="violations-body">
+        <tr><td colspan="6" class="empty">Loading violations...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <img id="modal-img" src="" alt="Violation"/>
+    <div class="modal-meta" id="modal-meta"></div>
+    <button class="modal-close" onclick="closeModal()">✕ CLOSE</button>
+  </div>
+</div>
+
+<footer>TRAFFIC GUARD SYSTEM &nbsp;|&nbsp; ESP32-CAM NETWORK &nbsp;|&nbsp; AUTO-REFRESH 30s</footer>
+
+<script>
+  async function loadStats() {
+    const r = await fetch('/stats');
+    const d = await r.json();
+    document.getElementById('total').textContent     = d.total;
+    document.getElementById('today').textContent     = d.today;
+    document.getElementById('locations').textContent = d.locations.length;
+  }
+
+  async function loadViolations() {
+    const r    = await fetch('/violations');
+    const data = await r.json();
+    const tbody = document.getElementById('violations-body');
+
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">No violations recorded yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(v => `
+      <tr>
+        <td>${v.id}</td>
+        <td>${v.location_id}</td>
+        <td>${v.timestamp.replace('_', ' ').replace(/-/g, ':').slice(0,-3)}</td>
+        <td>${v.received_at}</td>
+        <td>
+          <img class="thumb" src="/image/${v.filename}"
+               onclick="openModal('/image/${v.filename}', ${JSON.stringify(v).replace(/"/g,'&quot;')})"
+               onerror="this.style.display='none'"/>
+        </td>
+        <td><span class="badge">VIOLATION</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function openModal(src, v) {
+    document.getElementById('modal-img').src = src;
+    document.getElementById('modal-meta').innerHTML = `
+      Location: <span>${v.location_id}</span><br>
+      Timestamp: <span>${v.timestamp}</span><br>
+      Received: <span>${v.received_at}</span><br>
+      File: <span>${v.filename}</span>
+    `;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  document.getElementById('modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  function refresh() { loadStats(); loadViolations(); }
+  refresh();
+  setInterval(refresh, 30000);
+</script>
+</body>
+</html>
